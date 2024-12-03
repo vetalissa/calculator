@@ -1,61 +1,65 @@
 from tkinter import *
 from tkinter import ttk
 
-window = Tk()
-window.title('Калькулятор')
-window.geometry('240x260')
+class Calculator:
+    def __init__(self, master):
+        self.master = master
+        self.master.title('Калькулятор')
+        self.master.geometry('260x270')
+        self.master.resizable(False, False)
 
-frame = Frame(
-    window,
-    padx=10,
-    pady=10
-)
+        self.expression = ''
 
-frame.pack(expand=True)
+        # Frame and Canvas
+        self.frame = Frame(self.master, padx=10, pady=10)
+        self.frame.pack(expand=True)
 
-canvas = Canvas(bg="white", width=300, height=260)
-canvas.pack(anchor=CENTER, expand=1)
+        self.canvas = Canvas(self.frame, bg="white", width=240, height=260)
+        self.canvas.pack(anchor=CENTER, expand=1)
 
-result = StringVar()
-expression_field = Entry(textvariable=result, font='Montserrat 15')
-canvas.create_window(0, 0, anchor=NW, window=expression_field, width=480, height=60)
+        self.result = StringVar()
+        self.expression_field = Entry(self.canvas, textvariable=self.result, font='Montserrat 15')
+        self.canvas.create_window(0, 0, anchor=NW, window=self.expression_field, width=240, height=60)
 
-expression = ''
+        self.create_buttons()
 
+    def create_buttons(self):
+        buttons = [
+            ('1', 0, 60), ('2', 60, 60), ('3', 120, 60), ('+', 180, 60),
+            ('4', 0, 110), ('5', 60, 110), ('6', 120, 110), ('-', 180, 110),
+            ('7', 0, 160), ('8', 60, 160), ('9', 120, 160), ('*', 180, 160),
+            ('.', 0, 210), ('0', 60, 210), ('/', 120, 210), ('=', 180, 210),
+            ('clear', 180, 10)
+        ]
 
-class Button:
-    def __init__(self, num, k, t, command):
-        dict_command = {'press_num': self.press_num, 'answer': self.answer, 'clear': self.clear}
-        self.btn = ttk.Button(text=num, command=dict_command[command])
-        canvas.create_window(k, t, anchor=NW, window=self.btn, width=60, height=50)
+        for (text, x, y) in buttons:
+            if text == '=':
+                cmd = self.calculate
+            elif text == 'clear':
+                cmd = self.clear
+            else:
+                cmd = lambda x=text: self.append_to_expression(x)
 
-    def press_num(self):
-        global expression
-        expression += self.btn['text']
-        result.set(expression)
+            btn = ttk.Button(self.frame, text=text, command=cmd)
+            self.canvas.create_window(x, y, anchor=NW, window=btn, width=60, height=50)
 
-    @staticmethod
-    def answer():
+    def append_to_expression(self, value):
+        self.expression += str(value)
+        self.result.set(self.expression)
+
+    def calculate(self):
         try:
-            global expression
-            expression = str(eval(expression))
-            result.set(str(expression))
-        except:
-            result.set('error')
-            expression = ''
+            self.expression = str(eval(self.expression))
+            self.result.set(self.expression)
+        except Exception:
+            self.result.set('error')
+            self.expression = ''
 
-    @staticmethod
-    def clear():
-        global expression
-        expression = ''
-        result.set(expression)
+    def clear(self):
+        self.expression = ''
+        self.result.set(self.expression)
 
-
-button_num = [Button('1', 0, 60, 'press_num'), Button('2', 60, 60, 'press_num'), Button('3', 120, 60, 'press_num'),
-              Button('+', 180, 60, 'press_num'),Button('4', 0, 110, 'press_num'), Button('5', 60, 110, 'press_num'),
-              Button('6', 120, 110, 'press_num'),Button('-', 180, 110, 'press_num'), Button('7', 0, 160, 'press_num'),
-              Button('8', 60, 160, 'press_num'), Button('9', 120, 160, 'press_num'), Button('*', 180, 160, 'press_num'),
-              Button('.', 0, 210, 'press_num'), Button('0', 60, 210, 'press_num'), Button('/', 120, 210, 'press_num'),
-              Button('=', 180, 210, 'answer'), Button('clear', 180, 10, 'clear')]
-
-window.mainloop()
+if __name__ == '__main__':
+    root = Tk()
+    calculator = Calculator(root)
+    root.mainloop()
